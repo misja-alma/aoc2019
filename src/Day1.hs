@@ -1,3 +1,5 @@
+module Day1 where
+
 adjust :: Int -> Int
 adjust x = x `div` 3 - 2
 

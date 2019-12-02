@@ -3,3 +3,4 @@ aoc2019.cabal
 *~
 .idea
 *.iml
+dist-newstyle/
