@@ -1,4 +1,4 @@
-module Day1 where
+module Day2 where
 
 import Data.List.Split
 import Data.Array
@@ -18,6 +18,8 @@ mul :: Program -> Index -> Index -> Index -> Program
 mul ar p1 p2 output = let product = (peek ar p1) * (peek ar p2) in
                       ar // [(fromInteger $ ar ! output, product)]
                       
+-- TODO better to first translate the instruction, then have instruction generate Either[Finished, Program], repeat until finished.
+-- This way it is easier to detect deadloops and to extend with more instructions.                                            
 execute :: Program -> Index -> Integer
 execute ar pc = case (ar ! pc) of
     99 -> ar ! 0
