@@ -2,6 +2,7 @@ module Day4 where
 
 import Data.List
 import Utils
+import Text.Printf (printf)
 
 twoSameDigits :: Int -> Bool
 twoSameDigits x = length (nub $ show x) < 6
@@ -31,10 +32,10 @@ part1 :: IO()
 part1 = do
   let inRange = filter (within (153517, 630395)) increasingNumbers
   let solution = length $ filter twoSameDigits inRange
-  putStrLn $ "Solution: " ++ show solution
+  printf  "Solution: %d\n" solution
 
 part2 :: IO()
 part2 = do
    let inRange = filter (within (153517, 630395)) increasingNumbers
    let solution = length $ filter exactlyTwoSameDigits inRange
-   putStrLn $ "Solution: " ++ show solution
+   printf  "Solution: %d\n" solution
