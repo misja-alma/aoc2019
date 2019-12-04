@@ -2,6 +2,7 @@ module Day3 where
 
 import Data.List.Split
 import Data.List
+import Utils
 
 data Point = Point Int Int deriving (Show, Eq)
 
@@ -21,10 +22,6 @@ sliding width step xs
 
 crossingPoints :: [Line] -> Line -> [Point]
 crossingPoints lines line = lines >>= (crossingPoint line)
-
-within :: (Int, Int) -> Int -> Bool
-within (a, b) c = let (smaller, greater) = if a > b then (b, a) else (a, b) in
-                  c >= smaller && c <= greater
 
 deltas :: Line -> (Int, Int)
 deltas (Line (Point x1 y1) (Point x2 y2)) = (x2 - x1, y2 - y1)

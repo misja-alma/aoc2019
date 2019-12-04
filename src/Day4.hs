@@ -1,6 +1,7 @@
 module Day4 where
 
 import Data.List
+import Utils
 
 twoSameDigits :: Int -> Bool
 twoSameDigits x = length (nub $ show x) < 6
@@ -12,13 +13,9 @@ search2Combi :: String -> String -> Bool
 search2Combi [] currentCombi = length currentCombi == 2
 search2Combi (c: cs) []      = search2Combi cs [c]
 search2Combi (c: cs) currentCombi
-  | c == head currentCombi   = search2Combi cs (c: currentCombi) 
-  | length currentCombi == 2 = True 
+  | c == head currentCombi   = search2Combi cs (c: currentCombi)
+  | length currentCombi == 2 = True
   | otherwise                = search2Combi cs [c]
-
-within :: (Int, Int) -> Int -> Bool
-within (a, b) c = let (smaller, greater) = if a > b then (b, a) else (a, b) in
-                  c >= smaller && c <= greater
 
 increasingNumbers :: [Int]
 increasingNumbers = do
@@ -28,7 +25,7 @@ increasingNumbers = do
   x4 <- [x3..9]
   x5 <- [x4..9]
   x6 <- [x5..9]
-  return $ x6 + 10 * (x5 + 10 * (x4 + 10 * (x3 + 10 * (x2 + 10 * x1))))
+  return $ toNumber [x1, x2, x3, x4, x5, x6]
 
 part1 :: IO()
 part1 = do
