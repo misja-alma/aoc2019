@@ -1,4 +1,4 @@
-module Tree (Tree (..), dfs, depth, hasChild, mkTree, treeSum) where
+module Tree (Tree (..), dfs, depth, hasChild, mkTree, treeSum, treeMap, treeFold) where
 
 import Data.List
 import Data.Maybe
@@ -27,6 +27,12 @@ hasChild s (Tree v children) = s == v || or (fmap (hasChild s) children)
 
 treeSum :: Num a => Tree a -> a
 treeSum (Tree v children) = v + sum (fmap treeSum children)
+
+treeMap :: (a -> b) -> Tree a -> Tree b
+treeMap f (Tree v children) = Tree (f v) (fmap (treeMap f) children)
+
+treeFold :: (b -> a -> b) -> b -> Tree a -> b
+treeFold f acc (Tree v children) = foldl (treeFold f) (f acc v) children
 
 mkTree :: Ord a => a -> [[a]] -> Tree a
 mkTree root pairs = let adjPairs = foldl (\map [from, to] -> MMap.insert from to map) MMap.empty pairs in
