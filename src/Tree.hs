@@ -34,6 +34,7 @@ treeMap f (Tree v children) = Tree (f v) (fmap (treeMap f) children)
 treeFold :: (b -> a -> b) -> b -> Tree a -> b
 treeFold f acc (Tree v children) = foldl (treeFold f) (f acc v) children
 
+-- constructs a tree from a list of pairs [parent, child]
 mkTree :: Ord a => a -> [[a]] -> Tree a
 mkTree root pairs = let adjPairs = foldl (\map [from, to] -> MMap.insert from to map) MMap.empty pairs in
                     mapToTree adjPairs root
