@@ -116,7 +116,6 @@ outputForPhases program phases =
         WaitForOutput _ _ e = execute [phases !! 4, d] program in
      e
 
--- Solution: 116680 from 32410
 part1 :: IO ()
 part1 = do
     content <- readFile "resources/day7.txt"
@@ -165,7 +164,6 @@ loopUntilHalt' programs lastOutput =
         WaitForOutput _ _ outputE ->   
             loopUntilHalt' [sa, sb, sc, sd, se] outputE   
 
--- Solution: 89603079 from 76589
 part2 :: IO ()
 part2 = do
     content <- readFile "resources/day7.txt"
