@@ -1,4 +1,4 @@
-module Utils (within, toNumber) where
+module Utils (within, toNumber, sliding, count) where
 
 import Data.Maybe
 
@@ -11,6 +11,16 @@ toNumber xs = toNumber' (reverse xs)
   where 
     toNumber' [x]     = x
     toNumber' (x: xs) = x + 10 * toNumber' xs 
+    
+sliding :: Int -> Int -> [a] -> [[a]]
+sliding width step xs
+    | len < width = []
+    | otherwise   = [(take width xs)] ++ sliding width step (drop step xs)
+         where
+            len = length xs    
+
+count :: Eq a => a -> [a] -> Int
+count x = length . filter (x==)
 
 bfs :: a -> (a -> [a]) -> (a -> Bool) -> Maybe a     
 bfs root getChildren utilityFunction = undefined -- TODO implement using queue
