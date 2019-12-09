@@ -94,6 +94,27 @@ setBase opcode inp prog@(ip, base, ar) =
     let p1 = readParam prog 1 opcode in
     Running (ip + 2, base + fromInteger p1, ar) inp
 
+-- A debug function can optionally print output based on the intermediary programState
+-- or even stop at a conditional breakpoint with some new DebugState
+type DebugFunction = Input -> Program -> IO Bool
+
+printInstruction :: DebugFunction
+printInstruction input prog@(pc, base, ar) = do
+    let instr = ar ! pc
+    let opString = showOperation instr prog
+    putStrLn $ "Instruction: " ++ opString
+    return False
+
+debug :: Input -> Program -> DebugFunction -> IO ProgramState
+debug input prog@(pc, base, ar) debugFunction = do
+    debugResult <- debugFunction input prog -- TODO we should check if it is a breakpoint (i.e. True)
+    let instr = ar ! pc
+    let operation = translate instr
+    let result = operation input prog
+    case result of
+        Running newProg newInput -> debug newInput newProg debugFunction
+        outputOrHalted           -> return outputOrHalted
+
 execute :: Input -> Program -> ProgramState
 execute input prog@(pc, base, ar) =
     let instr = ar ! pc
@@ -102,6 +123,27 @@ execute input prog@(pc, base, ar) =
     case result of
         Running newProg newInput -> execute newInput newProg
         outputOrHalted           -> outputOrHalted
+
+showParams :: Opcode -> Program -> Int -> String
+showParams opcode prog nr = unwords $ fmap (showParam opcode prog) [1..nr]
+
+-- TODO write param should not be fully read, clearer if just the address is shown
+showParam :: Opcode -> Program -> Int -> String
+showParam opcode prog i = show $ readParam prog i opcode
+
+showOperation :: Opcode -> Program -> String
+showOperation opcode prog =
+    case opcode `mod` 100 of
+      99 -> "exit"
+      1  -> "add " ++ showParams opcode prog 3
+      2  -> "mul " ++ showParams opcode prog 3
+      3  -> "input " ++ showParams opcode prog 1
+      4  -> "output " ++ showParams opcode prog 1
+      5  -> "jumpIfTrue " ++ showParams opcode prog 2
+      6  -> "jumpIfFalse " ++ showParams opcode prog 2
+      7  -> "lessThan " ++ showParams opcode prog 3
+      8  -> "equals " ++ showParams opcode prog 3
+      9  -> "setBase " ++ showParams opcode prog 1
 
 translate :: Opcode -> Operation
 translate opcode =
@@ -117,6 +159,13 @@ translate opcode =
       8  -> equals opcode
       9  -> setBase opcode
 
+debugCollectOutputs :: Input -> Program -> DebugFunction -> IO [Output]
+debugCollectOutputs input program f = do
+    result <- debug input program f
+    case result of
+        Halted                        -> return []
+        (WaitForOutput prog inp outp) -> fmap (outp :) (debugCollectOutputs inp prog f)
+
 collectOutputs :: Input -> Program -> [Output]
 collectOutputs input program = case execute input program of
     Halted                        -> []
@@ -128,7 +177,7 @@ part1and2 = do
     let numbers = (read :: String -> Integer) <$> splitOn "," content
     let buffer = replicate 1000 0
     let opArray = array (0, length numbers + length buffer  - 1) $ zip [0..] (numbers ++ buffer)
-    let outputs1 = collectOutputs [1] (0, 0, opArray)
+    outputs1 <- debugCollectOutputs [1] (0, 0, opArray) printInstruction
     putStrLn $ "Solution part1: " ++ unwords (fmap show outputs1)
     let outputs2 = collectOutputs [2] (0, 0, opArray)
     putStrLn $ "Solution part2: " ++ unwords (fmap show outputs2)
