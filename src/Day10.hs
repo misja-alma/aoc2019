@@ -1,4 +1,4 @@
-module Day10 where
+module Day10 (part1, part2) where
 
 import Data.List
 import Data.Function
@@ -32,18 +32,16 @@ visibleOthers others asteroid =
         visible = filter (not . isBlocked gradients) gradients in
     visible
 
-rowToCells :: ([(Char, Int)], Int) -> [(Int, Int, Char)]
-rowToCells (row, y) = fmap (\(c, x) -> (x,y,c)) row
+rowToCells :: (String, Int) -> [(Int, Int, Char)]
+rowToCells (cs, y) = (\(c, x) -> (x,y,c)) <$> zip cs [0..]
 
 part1 :: IO()
 part1 = do
     content <- readFile "resources/day10.txt"
-    let rowsWithX = fmap (\r -> zip r [0..]) (lines content) :: [[(Char, Int)]]
-    let rowsWithXY = zip rowsWithX [0..] :: [([(Char, Int)], Int)]
-    let cells = rowsWithXY >>= rowToCells
+    let cells = zip (lines content) [0..] >>= rowToCells
     let asteroids = (\(x,y,c) -> (x,y)) <$> filter (\(x,y,c) -> c == '#') cells
     let visible = fmap (\a -> (a, visibleOthers asteroids a)) asteroids
-    let solution = maximumBy (compare `on` (\(_, vs) -> length vs)) visible
+    let solution = maximumBy (compare `on` (length .snd)) visible
     putStrLn $ "Solution: " ++ show (length (snd solution))
 
 -- Note that dy had to be reversed for this problem: (0,-1) has angle 0.
@@ -65,9 +63,7 @@ compareByAngle withGradients = compare `on` uniqueAngle withGradients
 part2 :: IO()
 part2 = do
     content <- readFile "resources/day10.txt"
-    let rowsWithX = fmap (\r -> zip r [0..]) (lines content) :: [[(Char, Int)]]
-    let rowsWithXY = zip rowsWithX [0..] :: [([(Char, Int)], Int)]
-    let cells = rowsWithXY >>= rowToCells
+    let cells = zip (lines content) [0..] >>= rowToCells
     let asteroids = (\(x,y,c) -> (x,y)) <$> filter (\(x,y,c) -> c == '#') cells
     let origin = (22,25)
     let (ox, oy) = origin

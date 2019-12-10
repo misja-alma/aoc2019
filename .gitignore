@@ -3,3 +3,4 @@
 .idea
 *.iml
 dist-newstyle/
+cabal.project.local
