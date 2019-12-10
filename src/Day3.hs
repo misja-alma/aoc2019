@@ -13,13 +13,6 @@ toLine xs = Line (xs !! 0) (xs !! 1)
 
 origin = Point 0 0
 
-sliding :: Int -> Int -> [a] -> [[a]]
-sliding width step xs
-    | len < width = []
-    | otherwise   = [(take width xs)] ++ sliding width step (drop step xs)
-         where
-            len = length xs
-
 crossingPoints :: [Line] -> Line -> [Point]
 crossingPoints lines line = lines >>= (crossingPoint line)
 

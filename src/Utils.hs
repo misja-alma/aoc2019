@@ -15,12 +15,12 @@ toNumber xs = toNumber' (reverse xs)
 sliding :: Int -> Int -> [a] -> [[a]]
 sliding width step xs
     | len < width = []
-    | otherwise   = [(take width xs)] ++ sliding width step (drop step xs)
+    | otherwise   = take width xs : sliding width step (drop step xs)
          where
             len = length xs    
 
-count :: Eq a => a -> [a] -> Int
-count x = length . filter (x==)
+count :: (a -> Bool) -> [a] -> Int
+count f = length . filter f
 
 bfs :: a -> (a -> [a]) -> (a -> Bool) -> Maybe a     
 bfs root getChildren utilityFunction = undefined -- TODO implement using queue

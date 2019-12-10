@@ -13,8 +13,8 @@ part1 = do
     content <- readFile "resources/day8.txt"
     let numbers = fmap digitToInt content
     let layers = sliding (width * height) (width * height) numbers
-    let least0s = minimumBy (compare `on` count 0) layers
-    let solution = (count 1 least0s) * (count 2 least0s)
+    let least0s = minimumBy (compare `on` count (== 0)) layers
+    let solution = (count (== 1) least0s) * (count (== 2) least0s)
     putStrLn $ "Solution: " ++ show solution
 
 mapPixel :: [Int] -> Int
