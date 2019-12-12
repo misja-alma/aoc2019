@@ -33,10 +33,10 @@ bfs root getChildren matchFunction =
         visited = S.singleton root
         (_, _, result) = head $ dropWhile (\(q,_,r) -> not (null q) && isNothing r) $ iterate nextCandidate (queue, visited, Nothing) in
     result
-    where nextCandidate (q, v, _) = let Just (path, poppedQ) = D.popBack q 
+    where nextCandidate (q, v, _) = let Just (path, poppedQ) = D.popBack q
                                         candidate = head path in
                                     if matchFunction candidate then (poppedQ, v, Just path)
-                                    else let children = filter (\c -> S.notMember c v) (getChildren candidate)
+                                    else let children = filter (`S.notMember` v) (getChildren candidate)
                                              newVisited = S.union v (S.fromList children)
                                              nextQueue = foldl (\newQ c -> D.pushFront newQ (c : path)) poppedQ children in
                                          (nextQueue, newVisited, Nothing)

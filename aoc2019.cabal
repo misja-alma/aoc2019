@@ -28,6 +28,23 @@ executable aoc2019
                        containers,
                        multimap,
                        dequeue,
-                       regex-posix
+                       regex-posix,
+                       hspec
   hs-source-dirs:      src
   default-language:    Haskell2010
+
+Test-Suite          utils-tests
+    type:           exitcode-stdio-1.0
+    main-is:        UtilsTest.hs
+    other-modules:  Utils
+    build-depends:  base,
+                    split,
+                    array,
+                    text,
+                    containers,
+                    multimap,
+                    dequeue,
+                    regex-posix,
+                    hspec
+    hs-source-dirs: test src
+
