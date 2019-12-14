@@ -169,20 +169,20 @@ findPos :: Int -> Grid -> (Int, Int)
 findPos o grid = let coords = [(x,y)| x<-[0..gridWidth-1], y<-[0..gridHeight-1]] in
                  fromJust $ find (\xy -> grid ! xy == o) coords
 
-collect3Outputs :: Input -> Program -> (Program, [Int])
+collect3Outputs :: Input -> Program -> (Program, [Int]) -- TODO check first output for Halted. Return special state afterwards.
 collect3Outputs input program = let WaitForOutput prog1 inp outp1 = execute input program
                                     WaitForOutput prog2 _ outp2 = execute [] prog1
                                     WaitForOutput prog3 _ outp3 = execute [] prog2 in
                                 trace ("output1: " ++ show outp1 ++ " output2: " ++ show outp2 ++ " output3: " ++ show outp3) (prog3, [fromInteger outp1, fromInteger outp2, fromInteger outp3])
 
-gameFinished :: [Int] -> Bool
-gameFinished [x,y,_] = x == -1 && y == 0
+isScoreUpdate :: [Int] -> Bool
+isScoreUpdate [x,y,_] = x == -1 && y == 0
 
 collectOutputsAndScore :: Input -> Program -> (Program, Int, [[Int]])
 collectOutputsAndScore input program =
     let outputs = tail $ iterate (\(pr, os) -> collect3Outputs input pr) (program, [])
-        os = takeWhile (not . gameFinished) (fmap snd outputs)
-        (finalProg, [_,_,score]) = head $ dropWhile (not . gameFinished . snd) outputs in
+        os = takeWhile (not . isScoreUpdate) (fmap snd outputs)
+        (finalProg, [_,_,score]) = head $ dropWhile (not . isScoreUpdate . snd) outputs in
     (finalProg, score, reverse $ tail os)
 
 part2 :: IO ()
@@ -196,7 +196,7 @@ part2 = do
     let gameProg = (0,0,opArray // [(0, 2)])
     let (prog2, score, outputs) = collectOutputsAndScore [] gameProg
 
-    let initialGrid = listArray ((0,0), (gridWidth - 1,gridHeight - 1)) (replicate (gridWidth * gridHeight) (0))
+    let initialGrid = listArray ((0,0), (gridWidth - 1,gridHeight - 1)) (replicate (gridWidth * gridHeight) 0)
     let grid = foldl drawItem initialGrid outputs
     putStrLn $ display grid
 
@@ -205,7 +205,7 @@ part2 = do
     putStrLn $ "Ball: " ++ show ballPos ++ " paddle: " ++ show paddlePos
 
     let initialState = Playing prog2 ballPos paddlePos score
-    let states = dropWhile isPlaying $ iterate updatePaddle initialState
+    let states = dropWhile isPlaying $ iterate updatePaddle' initialState
     let Finished finalScore = head states
     print finalScore -- 13989
 
@@ -220,29 +220,37 @@ part2 = do
 --      reading can stop as soon as a ball is read
 -- TODO it seems the game finished comes as 2nd line for the ball!
 
-data GameState = Playing Program (Int, Int) (Int, Int) Int | Finished Int
+data GameState = Playing Program (Int, Int) (Int, Int) Int | Updating Program (Int, Int) (Int, Int) Int | Finished Int
 
 isPlaying :: GameState -> Bool
 isPlaying (Finished _) = False
 isPlaying _            = True
 
---updatePaddle' :: GameState -> GameState
---updatePaddle' state1@(Playing prog (ballX, ballY) (pX, pY) s) =
---  let joystick = trace "updatePaddle" $ if ballX > pX then 1 else if ballX < pX then -1 else 0
---      -- TODO iterate over couples of 3outputs. Turn them into actions (and execute them immediately). Dropwhile action is not Ball or Finished.
---      crushes = iterate crushBrick state1
---                        where crushBrick (Playing newProg2, newS, (oldX2, oldY2)) =
---                                  let (prog5, [_, _, newScore]) = collect3Outputs [] newProg2
---                                      (prog6, [newerOldX, newerOldY, _]) = collect3Outputs [] prog5
---                                  in (prog6, newScore, (newerOldX, newerOldY))
---
---                (newerProg2, newerS, _) = head $ dropWhile (\(_, _, (ox, oy)) -> ox /= -1 || oy /= ballY) crushes
+isUpdating :: GameState -> Bool
+isUpdating (Updating _ _ _ _) = True
+isUpdating _                  = False
+
+updatePaddle' :: GameState -> GameState
+updatePaddle' (Playing prog (ballX, ballY) (pX, pY) s) =
+  let joystick = trace "updatePaddle" $ if ballX > pX then 1 else if ballX < pX then -1 else 0
+      crushes = iterate readUpdate (Updating prog (ballX, ballY) (pX, pY) s)
+                        where readUpdate (Updating prog2 bxy@(oldBallX, oldBallY) pxy s2) =
+                                  let (prog3, [oldX, oldY, _]) = collect3Outputs [joystick] prog2 -- First one is always an old position
+                                      (prog4, os@[newX, newY, i]) = collect3Outputs [] prog3
+                                  in if isScoreUpdate os then 
+                                       Updating prog4 bxy pxy i -- stone crushed: update score. Note: game could be finished now!
+                                  else
+                                       case i of       
+                                         3 -> Updating prog4 bxy (newX, newY) s2 -- paddle moved
+                                         4 -> Playing prog4 (newX, newY) pxy s2   -- ball moved
+  -- Read updates until Finished or Playing
+  in head $ dropWhile isUpdating crushes
 
 updatePaddle :: GameState -> GameState
 updatePaddle (Playing prog (ballX, ballY) (pX, pY) s) =
   let joystick = trace "updatePaddle" $ if ballX > pX then 1 else if ballX < pX then -1 else 0
       (prog1, os@[oldX, oldY, maybeFinalScore]) = collect3Outputs [joystick] prog in
-  if gameFinished os then Finished maybeFinalScore
+  if isScoreUpdate os then Finished maybeFinalScore
   else
       -- optionally read paddle pos when we know it moved
       let (newProg, newPaddle, (newOldX, newOldY)) =
