@@ -6,8 +6,6 @@ import Data.List
 import Data.Function
 import Data.Char
 import Utils
-import Data.SuffixTree (STree)
-import qualified Data.SuffixTree as T
 import Data.Maybe
 
 type Index = Int

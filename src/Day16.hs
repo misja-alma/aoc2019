@@ -31,7 +31,7 @@ part1 = do
 part2 :: IO ()
 part2 = do
     content <- readFile "resources/day16.txt"
-    let nrs = digitToInt <$> content
+    let nrs = concat $ replicate 130 [1,2,3,4,5] --digitToInt <$> content
     let nrs2 = take 80 $ iterate generateNextNumbers nrs
     let bla = filter (=="bla") $ fmap (\line -> trace (concatMap show $ take 80 line) "bla") nrs2
     putStrLn $ "Solution: " ++ show (length bla)
