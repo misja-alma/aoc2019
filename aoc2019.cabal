@@ -28,6 +28,7 @@ executable aoc2019
                        containers,
                        multimap,
                        dequeue,
+                       deque,
                        regex-posix,
                        hspec,
                        hashmap,

@@ -28,7 +28,7 @@ part1 = do
     let nrs = digitToInt <$> content
     let finalNumbers = head $ drop 100 $ iterate generateNextNumbers nrs
     let solution = take 8 finalNumbers
-    putStrLn $ "Solution: " ++ concatMap show solution 
+    putStrLn $ "Solution: " ++ concatMap show solution
 
 part2 :: IO ()
 part2 = do
