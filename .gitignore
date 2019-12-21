@@ -4,3 +4,4 @@
 *.iml
 dist-newstyle/
 cabal.project.local
+ptest

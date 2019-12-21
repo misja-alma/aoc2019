@@ -13,7 +13,7 @@ import qualified Data.Map.Strict as M
 
 import qualified Deque.Strict as D
 import qualified Data.Set as S
-import qualified Heap as H
+import qualified Data.Heap as H
 
 import Debug.Trace
 
@@ -60,14 +60,14 @@ possibleMoves :: Grid -> M.Map String [(Int, Int)] -> (Int, Int) -> [(Int, Int)]
 possibleMoves grid gates pos  =
     let pms = validMoves grid pos
         result = fmap (transportPortal grid gates) pms
-    in trace ("Pos: " ++ show pos ++ " moves: " ++ show result) result
+    in result
 
 rowToCells :: (String, Int) -> [(Int, Int, Char)]
 rowToCells (cs, y) = (\(c, x) -> (x,y,c)) <$> zip cs [0..]
 
 type Grid = Array (Int, Int) Char
-gridWidth =  131 
-gridHeight = 131 
+gridWidth =  131
+gridHeight = 131
 
 part1 :: IO ()
 part1 = do
@@ -76,9 +76,8 @@ part1 = do
     let initialGrid = listArray ((0,0), (gridWidth - 1,gridHeight - 1)) (replicate (gridWidth * gridHeight) ' ')
     let grid = foldl (\g (x,y,v) -> g // [((x,y), v)]) initialGrid cells
     let gates = findAllGates grid
-    putStrLn $ show $ M.assocs gates
     let initialPos = head $ gates M.! "AA"
-    putStrLn $ "Initial pos: " ++ show initialPos
+    putStrLn "Starting search .. "
     let result = bfs' initialPos (possibleMoves grid gates) (\p -> nextToGate grid p == Just "ZZ")
     case result of
        Just shortestPath ->
@@ -111,10 +110,9 @@ part2 = do
     let initialGrid = listArray ((0,0), (gridWidth - 1,gridHeight - 1)) (replicate (gridWidth * gridHeight) ' ')
     let grid = foldl (\g (x,y,v) -> g // [((x,y), v)]) initialGrid cells
     let gatesWithOffsets = findAllGates2 grid
-    print $ M.assocs gatesWithOffsets
     let (initialPos, gateOffset) = head $ gatesWithOffsets M.! "AA"
     let initialState = SearchState initialPos 0 0
-    putStrLn $ "Initial pos: " ++ show initialPos ++ " offset AA: " ++ show gateOffset
+    putStrLn  "Starting search .."
     let result = bfs2 initialState (possibleMoves2 grid gatesWithOffsets) (\(SearchState p l _) -> l == 0 && nextToGate grid p == Just "ZZ")
     case result of
        Just (SearchState _ _ solution) ->
@@ -126,8 +124,8 @@ data SearchState = SearchState (Int, Int) Int Int deriving Show
 
 instance Ord SearchState where
     compare (SearchState _ level1 len1) (SearchState _ level2 len2) =
-        case compare len2 len1 of                    -- smaller is better
-            EQ    -> compare level2 level1           -- smaller is better
+        case compare len1 len2 of                    -- smaller is better, min based
+            EQ    -> compare level1 level2           -- smaller is better, min based
             other -> other
 
 instance Eq SearchState where
@@ -173,9 +171,9 @@ bfs2 :: SearchState -> (SearchState -> [SearchState]) -> (SearchState -> Bool) -
 bfs2 root getChildren matchFunction =
     let queue = H.singleton root
         visited = S.singleton $ withoutLength root
-        (_, finalVisited, result) = head $ dropWhile (\(q,_,r) -> not (H.isEmpty q) && isNothing r) $ iterate nextCandidate (queue, visited, Nothing) in
+        (_, finalVisited, result) = head $ dropWhile (\(q,_,r) -> not (H.null q) && isNothing r) $ iterate nextCandidate (queue, visited, Nothing) in
     result
-    where nextCandidate (q, v, _) =   let (candidate, poppedQ) = H.deleteMax q in
+    where nextCandidate (q, v, _) =   let Just (candidate, poppedQ) = H.uncons q in
                                       if matchFunction candidate then (poppedQ, v, Just candidate)
                                       else let children = filter (\c -> withoutLength c `S.notMember` v) (getChildren candidate)
                                                newVisited = S.union v (S.fromList $ fmap withoutLength children)
