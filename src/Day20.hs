@@ -84,7 +84,6 @@ part1 = do
          putStrLn $ "Solution: " ++ show solution
        Nothing -> putStrLn "No solution found!"
 
-
 dequeue :: D.Seq a -> (a, D.Seq a)
 dequeue sq = let (rest, el) = D.splitAt (D.length sq - 1) sq in (D.index el 0, rest)
 

@@ -39,7 +39,7 @@ executable aoc2019
 
 Test-Suite          utils-tests
     type:           exitcode-stdio-1.0
-    main-is:        UtilsTest.hs
+    main-is:        Spec.hs
     other-modules:  Utils
     build-depends:  base,
                     split,
@@ -51,4 +51,5 @@ Test-Suite          utils-tests
                     regex-posix,
                     hspec
     hs-source-dirs: test src
+    build-tool-depends: hspec-discover:hspec-discover
 

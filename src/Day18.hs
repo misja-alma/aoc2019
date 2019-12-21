@@ -9,8 +9,8 @@ import Data.List
 import Data.Char
 import Data.Hashable
 
-import qualified Data.Dequeue as D
-import qualified Heap as H
+import qualified Data.Dequeue as D -- NOTE bad choice, seems to be much slower than Data.Sequence
+import qualified Heap as H -- NOTE just Data.Heap would probably have been a better choice
 
 type Grid = Array (Int, Int) Char
 

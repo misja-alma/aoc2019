@@ -1,7 +1,7 @@
 module Utils (within, toNumber, sliding, count) where
 
 import Data.Maybe
-import qualified Data.Dequeue as D
+import qualified Data.Sequence as D
 import qualified Data.Set as S
 
 within :: (Int, Int) -> Int -> Bool
@@ -24,19 +24,24 @@ sliding width step xs
 count :: (a -> Bool) -> [a] -> Int
 count f = length . filter f
 
+dequeue :: D.Seq a -> (a, D.Seq a)
+dequeue sq = let (rest, el) = D.splitAt (D.length sq - 1) sq in (D.index el 0, rest)
+
+-- TODO also make a aStarSearch, using Data.Heap (NOTE: from heaps, not from heap!). And maybe variations on both that use HashSets. And Benchmark?
+
 -- while queue not empty: take bottom el, eval with utilityFunction, if finished exit
 -- otherwise get children, filter on not visited, add then to visited and to front of queue
 -- Returns the reversed path with the matched element at the top. Or nothing if not found.
 bfs :: Ord a => a -> (a -> [a]) -> (a -> Bool) -> Maybe [a]
 bfs root getChildren matchFunction =
-    let queue = D.pushFront (D.empty :: D.BankersDequeue [a]) [root]
+    let queue = D.singleton [root]
         visited = S.singleton root
-        (_, _, result) = head $ dropWhile (\(q,_,r) -> not (null q) && isNothing r) $ iterate nextCandidate (queue, visited, Nothing) in
+        (_, _, result) = head $ dropWhile (\(q,_,r) -> not (D.null q) && isNothing r) $ iterate nextCandidate (queue, visited, Nothing) in
     result
-    where nextCandidate (q, v, _) = let Just (path, poppedQ) = D.popBack q
+    where nextCandidate (q, v, _) = let (path, poppedQ) = dequeue q
                                         candidate = head path in
                                     if matchFunction candidate then (poppedQ, v, Just path)
                                     else let children = filter (`S.notMember` v) (getChildren candidate)
                                              newVisited = S.union v (S.fromList children)
-                                             nextQueue = foldl (\newQ c -> D.pushFront newQ (c : path)) poppedQ children in
+                                             nextQueue = foldl (\newQ c -> (D.<|) (c : path) newQ) poppedQ children in
                                          (nextQueue, newVisited, Nothing)
