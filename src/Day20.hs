@@ -11,9 +11,8 @@ import Data.Maybe
 import Data.Char
 import qualified Data.Map.Strict as M
 
-import qualified Deque.Strict as D
 import qualified Data.Set as S
-import qualified Data.Heap as H
+import qualified Data.Sequence as D
 
 import Debug.Trace
 
@@ -85,24 +84,27 @@ part1 = do
          putStrLn $ "Solution: " ++ show solution
        Nothing -> putStrLn "No solution found!"
 
+
+dequeue :: D.Seq a -> (a, D.Seq a)
+dequeue sq = let (rest, el) = D.splitAt (D.length sq - 1) sq in (D.index el 0, rest)
+
 bfs' :: (Int, Int) -> ((Int, Int) -> [(Int, Int)]) -> ((Int, Int) -> Bool) -> Maybe [(Int, Int)]
 bfs' root getChildren matchFunction =
-    let queue = D.fromConsAndSnocLists [[root]] [[root]]
+    let queue = D.singleton [root]
         visited = S.singleton root
-        (_, finalVisited, result) = head $ dropWhile (\(q,_,r) -> not (null q) && isNothing r) $ iterate nextCandidate (queue, visited, Nothing) in
+        (_, finalVisited, result) = head $ dropWhile (\(q,_,r) -> not (D.null q) && isNothing r) $ iterate nextCandidate (queue, visited, Nothing) in
     result
-    where nextCandidate (q, v, _) =   let Just (path, poppedQ) = D.unsnoc q
+    where nextCandidate (q, v, _) =   let (path, poppedQ) = dequeue q
                                           candidate = head path in
                                       if matchFunction candidate then (poppedQ, v, Just path)
                                       else let children = filter (`S.notMember` v) (getChildren candidate)
                                                newVisited = S.union v (S.fromList children)
-                                               nextQueue = foldl (\newQ c -> D.cons (c : path) newQ) poppedQ children in
+                                               nextQueue = foldl (\newQ c -> (D.<|) (c : path) newQ) poppedQ children in
                                            (nextQueue, newVisited, Nothing)
 
 -- level starts at 0: move through inner gate increases level, outer gate decreases it.
 -- gate ZZ needs to be reached at level 0.
 -- So we need to know if a gate is inner or outer, and we need to keep a state consisting of both level and pos
--- Simple BFS was too slow, changing to a PQ ordered by length and level was already enough of a speedup.
 part2 :: IO ()
 part2 = do
     content <- readFile "resources/day20.txt"
@@ -161,19 +163,19 @@ possibleMoves2 grid gates (SearchState pos level ln)  =
         result = fmap (\(pos, lv) -> SearchState pos lv (ln + 1)) pms
     in result
 
-insertBatch :: Ord a => [a] -> H.Heap a -> H.Heap a
-insertBatch xs h = foldl (\h' x -> H.insert x h') h xs
+insertBatch :: [a] -> D.Seq a -> D.Seq a
+insertBatch xs h = foldl (\h' x -> (D.<|) x h') h xs
 
 withoutLength :: SearchState -> ((Int, Int), Int)
 withoutLength (SearchState pos level _) = (pos, level)
 
 bfs2 :: SearchState -> (SearchState -> [SearchState]) -> (SearchState -> Bool) -> Maybe SearchState
 bfs2 root getChildren matchFunction =
-    let queue = H.singleton root
+    let queue = D.singleton root
         visited = S.singleton $ withoutLength root
-        (_, finalVisited, result) = head $ dropWhile (\(q,_,r) -> not (H.null q) && isNothing r) $ iterate nextCandidate (queue, visited, Nothing) in
+        (_, finalVisited, result) = head $ dropWhile (\(q,_,r) -> not (D.null q) && isNothing r) $ iterate nextCandidate (queue, visited, Nothing) in
     result
-    where nextCandidate (q, v, _) =   let Just (candidate, poppedQ) = H.uncons q in
+    where nextCandidate (q, v, _) =   let (candidate, poppedQ) = dequeue q in
                                       if matchFunction candidate then (poppedQ, v, Just candidate)
                                       else let children = filter (\c -> withoutLength c `S.notMember` v) (getChildren candidate)
                                                newVisited = S.union v (S.fromList $ fmap withoutLength children)
