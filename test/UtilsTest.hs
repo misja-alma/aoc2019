@@ -1,4 +1,4 @@
-module UtilsTest where
+module UtilsTest (test_toNumber, test_Bfs) where
 
 import SpecHelper
 import Test.Hspec
@@ -16,7 +16,7 @@ test_Bfs =
     it "finds the shortest (reversed) path to a node satisfying the matchFunction" $
       bfs 1 (+1) (==3) `shouldBe` [3,2,1]
       
-      
+-- TODO I don't think this is needed      
 main :: IO ()
 main = hspec $ do
          test_toNumber     
