@@ -277,10 +277,6 @@ sendAndReceive2For ((nat, queues, progs), sentSoFar) index =
         (updatedNat, updatedQueues) = emptyOwnQueue `seq` deliverPackets2 nat emptyOwnQueue (toPackets output)
     in  ((updatedNat, updatedQueues, updatedProgs), newSent)
 
--- keep a NAT object as well that
--- keeps last 2 255's.
--- if both the same, responds with finished and the y value
--- otherwise keeps waiting until during a full iteration no output was sent. In that case it will send its kept packet to address 0.
 sendAndReceive2 :: Either Integer (NAT, S.Seq InputQueue, S.Seq Program) -> Either Integer (NAT, S.Seq InputQueue, S.Seq Program)
 sendAndReceive2 rqs =
     case rqs of

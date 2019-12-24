@@ -129,7 +129,7 @@ part2 :: IO ()
 part2 = do
     content <- readFile "resources/day22.txt"
     let commands = fmap parse (lines content)
-    let stackLength = 127
+    let stackLength = 10007
     -- let calcSolutionAtIndex i = foldl (runReverseCommand stackLength) i (reverse commands) --2020
     -- we would have to iterate 101741582076661 times ..
     -- let calcNTimes n i = head $ drop n $ iterate (calcSolutionAtIndex commands stackLength) i
@@ -139,55 +139,79 @@ part2 = do
 --    putStrLn $ unwords $ fmap show (calcSeqNTimes 2 stackLength)
 --    putStrLn $ unwords $ fmap show (calcSeqNTimes 3 stackLength)
 
---    putStrLn " Incs:"
---    let incs = fmap (calcIncAfterNTimes commands stackLength) [0..99]
+-- TODO try some more series. Problems: the cut is sometimes negated, and perhaps there are also still reversed series
+--      and the guessing of the final series for the answer doesn't seem to give good results even for gen 1 2 and 3
+
+--    putStrLn "Incs: (from 1)"
+--    let incs = fmap (calcIncAfterNTimes commands stackLength) [1..126]
 --    putStrLn $ unwords $ fmap show incs
+--
+--    putStrLn "fast Incs: (from 1)"
+--    let incs2 = fmap (fastCalcIncAfterNTimes commands stackLength) [1..126]
+--    putStrLn $ unwords $ fmap show incs2
+
+    putStrLn "correct Incs: (from 1)"
+    let incs3 = fmap (fastCalcIncAfterNTimesCorrect commands stackLength) [1..stackLength-1]
+    putStrLn $ take 30 $ unwords $ fmap show incs3
 --
 --    putStrLn " Incs signs:"
 --    let signs = fmap (incSign commands stackLength) [0..99]
 --    putStrLn $ unwords $ fmap show signs
 --
-    putStrLn " cuts: (from 1)"
-    let cuts = take 30 $ fmap (calcCutAfterNTimes commands stackLength) [1..126]
-    putStrLn $ unwords $ fmap show cuts
+--    putStrLn "Real cuts: (from 1)"
+--    let cuts = take 30 $ fmap (calcCutAfterNTimesSlow commands stackLength) [1..126]
+--    putStrLn $ unwords $ fmap show cuts
+
+--    putStrLn " cuts: (from 1)"
+--    let cuts = take 30 $ fmap (calcCutAfterNTimes commands stackLength) [1..126]
+--    putStrLn $ unwords $ fmap show cuts
 
     -- putStrLn $ show (guessCutAfterNTimes commands stackLength 2)
     putStrLn "guessed cuts: (from 1)"
-    let cuts2 = fmap (guessCutAfterNTimes commands stackLength) [1..126]
-    putStrLn $ unwords $ fmap show cuts2
+    let cuts2 = fmap (guessCutAfterNTimes commands stackLength) [1..(fromIntegral stackLength)-1]
+    putStrLn $ take 30 $ unwords $ fmap show cuts2
 --
 --    putStrLn "slow cuts:"
 --    let cuts2 = fmap (calcCutAfterNTimesSlow commands stackLength) [0..99]
 --    putStrLn $ unwords $ fmap show cuts2
 
-    putStrLn $ unwords $ fmap show (fmap (calcSolutionAtIndex commands 10007) [0..10])
+    -- seq after 1 time:
+    putStrLn "Real Seq after 1:"
+    putStrLn $ unwords $ take 30 $ fmap show (calcSeqNTimes commands stackLength 1)
 
-    let finalInc = fastCalcIncAfterNTimes commands 10007 1 --119315717514047 101741582076661
-    let finalCut = guessCutAfterNTimes commands 10007 1 --119315717514047 101741582076661
+    let guessedCommands1 = [DealIncrement (head incs3), Cut (stackLength - head cuts2)]
+    putStrLn "Guessed Seq after 1:"
+    putStrLn $ unwords $ take 30 $ fmap show (calcSeqNTimes guessedCommands1 stackLength 1)
+
+    -- seq after 2 time:
+    putStrLn "Real Seq after 2:"
+    putStrLn $ unwords $ take 30 $ fmap show (calcSeqNTimes commands stackLength 2)
+
+    let guessedCommands2 = [DealIncrement (head (tail incs3)), Cut (stackLength - head (tail cuts2))]
+    -- TODO it should always be length - cut because that's when pos 0 is moved enough.
+    putStrLn "Guessed Seq after 2:"
+    putStrLn $ unwords $ take 30 $ fmap show (calcSeqNTimes guessedCommands2 stackLength 1)
+
+       -- seq after 3 time:
+    putStrLn "Real Seq after 3:"
+    putStrLn $ unwords $ take 30 $ fmap show (calcSeqNTimes commands stackLength 3)
+
+    let guessedCommands3 = [DealIncrement (head (tail $ tail incs3)), Cut (stackLength - head (tail $ tail cuts2))]
+    putStrLn "Guessed Seq after 3:"
+    putStrLn $ unwords $ take 30 $ fmap show (calcSeqNTimes guessedCommands3 stackLength 1)
+
+    let finalInc = fastCalcIncAfterNTimesCorrect commands 119315717514047 (101741582076661-1)
+    let finalCut = guessCutAfterNTimes commands 119315717514047 (101741582076661-1)
     putStrLn $ "Final Inc: " ++ show finalInc
     putStrLn $ "Final cut: " ++ show finalCut
 
-    let finalCommands = [DealIncrement finalInc, Cut finalCut]
+    let finalCommands = [DealIncrement finalInc, Cut (119315717514047 - finalCut)]
 
-    let solution = calcSolutionAtIndex finalCommands 10007 3939 -- 119315717514047 2020
+    let solution = calcSolutionAtIndex finalCommands 119315717514047 2020
     putStrLn $ "Solution: " ++ show solution
-    let finalCommands2 = [DealIncrement (stackLength - finalInc), Cut finalCut, DealNewStack] -- check the negating of the inc in case of decreasing series.
-    let solution2 = calcSolutionAtIndex finalCommands2 10007 3939 -- 119315717514047 2020
-    putStrLn $ "Solution reversed: " ++ show solution2
-
-    -- TODO test the final calculation against some smaller examples. Incs and cuts seems to be right, except for the possible negative inc.
-
---    putStrLn $ "Inc after 0: " ++ show (calcIncAfterNTimes commands stackLength 0)
---    putStrLn $ "Inc after 1: " ++ show (calcIncAfterNTimes commands stackLength 1)
---    putStrLn $ "Inc after 2: " ++ show (calcIncAfterNTimes commands stackLength 2)
---    putStrLn $ "Inc after 3: " ++ show (calcIncAfterNTimes commands stackLength 3)
---    putStrLn $ "Inc after 4: " ++ show (calcIncAfterNTimes commands stackLength 4)
---    putStrLn $ "Inc after 100: " ++ show (calcIncAfterNTimes commands stackLength 100)
---    putStrLn $ "Fast Inc after 2: " ++ show (fastCalcIncAfterNTimes commands stackLength 2)
---    putStrLn $ "Fast Inc after 3: " ++ show (fastCalcIncAfterNTimes commands stackLength 3)
---    putStrLn $ "Fast Inc after 101741582076661: " ++ show (fastCalcIncAfterNTimes commands stackLength 101741582076661)
-
-
+--    let finalCommands2 = [DealIncrement finalInc, Cut (10007 - finalCut), DealNewStack] -- TODO also check the negating of the inc in case of decreasing series.
+--    let solution2 = calcSolutionAtIndex finalCommands2 119315717514047 2020
+--    putStrLn $ "Solution reversed: " ++ show solution2
 
 incSign :: [Command] -> Integer -> Integer -> Integer
 incSign commands stackLength n =
@@ -219,8 +243,7 @@ guessCutAfterNTimes commands stackLength n =
        a = (absMod (cut2 - b) stackLength) * fromJust (modInv b stackLength)
        am1Inv = fromJust $ modInv (a-1) stackLength
        cutN = (b * (powMod a n stackLength) - b * a) * am1Inv + b
-       --cutN = (b * a * (pow a (fromIntegral $ n-1) - 1)) `div` (a - 1) + b -- problem: gives correct results but power is too large. modpower would give wrong answer becaue division.
-   in cutN `mod` stackLength
+   in (cutN `mod` stackLength)  -- TODO No idea why but it is either this or stackLength - this. Maybe always return 2 guesses? Or better, verify the guess somehow ..
 
 absMod :: Integer -> Integer -> Integer
 absMod x m = if x < 0 then m + x else x
@@ -240,10 +263,6 @@ calcCutAfterNTimes commands stackLength n =
 calcSeqNTimes :: [Command] -> Integer -> Int -> [Integer]
 calcSeqNTimes commands stackLength n = fmap (calcNTimes commands stackLength n) [0..stackLength-1]
 
--- Calculate the cut:
--- take value at iteration n index 0
--- inc = calcN for generation n
--- (found value * inc) `rem` length = orig index = the cut
 calcCutAfterNTimesSlow :: [Command] -> Integer -> Int -> Int
 calcCutAfterNTimesSlow commands stackLength n =
    let seq = calcSeqNTimes commands stackLength n
@@ -265,6 +284,17 @@ calcIncAfterNTimes commands stackLength n =
       offset = abs (out1 - out0)
   in fromJust $ modInv offset stackLength
 
+calcIncCorrect :: [Command] -> Integer  -> Integer
+calcIncCorrect commands stackLength =
+   let cutAt1 = guessCutAfterNTimes commands stackLength 1
+       oldIndex = calcNTimes commands stackLength 1 (cutAt1 + 1) -- TODO  or it can be stackLength - cutAt1 + 1. Maybe we could check both for just catAt1 to see which is 0?
+   in fromJust $ modInv oldIndex stackLength
+
+-- NOTE: the result is either correct or should be negated (mod stacklength)
+fastCalcIncAfterNTimesCorrect :: [Command] -> Integer -> Integer -> Integer
+fastCalcIncAfterNTimesCorrect commands stackLength n =
+    let generator = calcIncCorrect commands stackLength
+    in powMod generator n stackLength
 
 calcNTimes :: [Command] -> Integer -> Int -> Integer -> Integer
 calcNTimes commands stackLength n i = head $ drop n $ iterate (calcSolutionAtIndex commands stackLength) i
