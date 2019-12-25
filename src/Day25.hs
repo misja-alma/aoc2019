@@ -1,4 +1,4 @@
-module Day26 where
+module Day25 where
 
 import Data.List.Split
 import Data.Array
@@ -157,7 +157,7 @@ readAndEval prog = do
 
 part1 :: IO ()
 part1 = do
-    content <- readFile "resources/day26.txt"
+    content <- readFile "resources/day25.txt"
     let numbers = (read :: String -> Integer) <$> splitOn "," content
     let buffer = replicate 1000 0
     let opArray = array (0, length numbers + length buffer  - 1) $ zip [0..] (numbers ++ buffer)
