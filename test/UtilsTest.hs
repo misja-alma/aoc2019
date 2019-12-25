@@ -1,4 +1,4 @@
-module UtilsTest (test_toNumber, test_Bfs) where
+module UtilsTest (test_toNumber, test_bfs, test_BfsWithPath) where
 
 import SpecHelper
 import Test.Hspec
@@ -10,14 +10,21 @@ test_toNumber =
     it "turns a list of digits into a number" $
       toNumber [1,2,3] `shouldBe` 123
 
-test_Bfs :: Spec
-test_Bfs =
-  describe "bfs" $ 
+test_bfs :: Spec
+test_bfs =
+  describe "bfs" $
+    it "finds the the first candidate that satisfies the matchFunction" $
+      bfs 1 (\x -> [x+1]) (==3) `shouldBe` Just 3
+
+test_BfsWithPath :: Spec
+test_BfsWithPath =
+  describe "bfsWithPath" $
     it "finds the shortest (reversed) path to a node satisfying the matchFunction" $
-      bfs 1 (+1) (==3) `shouldBe` [3,2,1]
-      
--- TODO I don't think this is needed      
+      bfsWithPath 1 (\x -> [x+1]) (==3) `shouldBe` Just [3,2,1]
+
+-- TODO I don't think this is needed
 main :: IO ()
 main = hspec $ do
-         test_toNumber     
-         test_Bfs 
+         test_toNumber
+         test_bfs
+         test_BfsWithPath

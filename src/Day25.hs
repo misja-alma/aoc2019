@@ -133,20 +133,12 @@ collectOutputs input program = case execute input program of
     WaitForInput prog             -> (prog, [])
     WaitForOutput prog inp outp   -> let (newProg, outputs) = collectOutputs inp prog in (newProg, outp : outputs)
 
--- address, x, y
-data Packet = Packet Int Integer Integer deriving Show
-
-type InputQueue = S.Seq (Integer, Integer)
-
-commandsToInput :: [String] -> [Integer]
-commandsToInput cs = cs >>= (\s -> fromIntegral <$> (fmap ord s ++ [10]))
-
 getLines :: Input -> Program -> (Program, [String])
 getLines input prog = let (newProg, outputs) = collectOutputs input prog
                       in (newProg, lines $ fmap (chr . fromInteger) outputs)
 
 toInput :: String -> Input
-toInput s = (fmap (fromIntegral . ord) s) ++ [10]
+toInput s = fmap (fromIntegral . ord) s ++ [10]
 
 readAndEval :: Program -> IO Program
 readAndEval prog = do
@@ -164,5 +156,5 @@ part1 = do
     let program = (0,0,opArray)
     let (prog, outputs) = getLines [] program
     putStrLn $ unlines outputs
-    iterateM readAndEval prog
+    iterateM readAndEval prog -- provide REPL to solve it manually
     return ()

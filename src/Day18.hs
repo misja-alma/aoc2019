@@ -8,6 +8,7 @@ import Data.Maybe
 import Data.List
 import Data.Char
 import Data.Hashable
+import Utils
 
 import qualified Data.Dequeue as D -- NOTE bad choice, seems to be much slower than Data.Sequence
 import qualified Heap as H -- NOTE just Data.Heap would probably have been a better choice
@@ -88,24 +89,11 @@ part1 = do
     putStrLn $ display grid
     let initialPos = findPos '@' grid
     let initialState = Collecting 0 initialPos S.empty
-    let result = bfs' initialState (possibleMoves grid) (\(Collecting _ _ keys) -> S.size keys == 26)
+    let result = bfs initialState (possibleMoves grid) (\(Collecting _ _ keys) -> S.size keys == 26)
     case result of
        Just (Collecting shortestPath _ _) ->
          putStrLn $ "Solution: " ++ show shortestPath
        Nothing -> putStrLn "No solution found!"
-
-bfs' :: CollectState -> (CollectState -> [CollectState]) -> (CollectState -> Bool) -> Maybe CollectState
-bfs' root getChildren matchFunction =
-    let queue = D.pushFront (D.empty :: D.BankersDequeue CollectState) root
-        visited = S.singleton root
-        (_, _, result) = head $ dropWhile (\(q,_,r) -> not (null q) && isNothing r) $ iterate nextCandidate (queue, visited, Nothing) in
-    result
-    where nextCandidate (q, v, _) = let Just (candidate, poppedQ) = D.popBack q in
-                                    if matchFunction candidate then (poppedQ, v, Just candidate)
-                                    else let children = filter (`S.notMember` v) (getChildren candidate)
-                                             newVisited = S.union v (S.fromList children)
-                                             nextQueue = foldl D.pushFront poppedQ children in
-                                         (nextQueue, newVisited, Nothing)
 
 data TotalState = TotalState Int [(Int, Int)] (S.Set Char)
 

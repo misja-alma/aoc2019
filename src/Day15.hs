@@ -231,7 +231,6 @@ part2 = do
     let (pl2, _, _) = bfs2 initialState2 posMoves successFunc
     putStrLn $ "Solution: " ++ show (pl2 - 1)
 
--- TODO check why parametric polymorphism doesn't seem to work here
 bfs2 :: (Int, Int) -> ((Int, Int) -> [(Int, Int)]) -> ((Int, Int) -> Bool) -> (Int, S.Set (Int, Int), Maybe [(Int, Int)])
 bfs2 root getChildren matchFunction =
     let queue = D.pushFront (D.empty :: D.BankersDequeue [(Int, Int)]) [root]
