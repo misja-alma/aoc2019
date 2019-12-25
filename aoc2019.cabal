@@ -34,7 +34,8 @@ Test-Suite all_tests
     type:           exitcode-stdio-1.0
     default-language: Haskell2010
     main-is:        Spec.hs
-    other-modules:  Utils
+    other-modules:  Utils,
+                    UtilsSpec
     build-depends:  base,
                     split,
                     array,
