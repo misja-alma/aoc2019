@@ -4,23 +4,15 @@ cabal-version:       >=1.10
 
 name:                aoc2019
 version:             0.1.0.0
--- synopsis:
--- description:
--- bug-reports:
--- license:
-license-file:        LICENSE
 author:              Misja Alma
 maintainer:          misja.alma2@ing.com
--- copyright:
--- category:
 build-type:          Simple
 extra-source-files:  CHANGELOG.md, README.md
 
 executable aoc2019
   main-is:             Main.hs
   ghc-options:         -O2
-  -- other-modules:
-  -- other-extensions:
+  default-language:    Haskell2010
   build-depends:       base,
                        split,
                        array,
@@ -37,10 +29,10 @@ executable aoc2019
                        arithmoi,
                        monad-extras
   hs-source-dirs:      src
-  default-language:    Haskell2010
 
-Test-Suite          utils-tests
+Test-Suite all_tests
     type:           exitcode-stdio-1.0
+    default-language: Haskell2010
     main-is:        Spec.hs
     other-modules:  Utils
     build-depends:  base,

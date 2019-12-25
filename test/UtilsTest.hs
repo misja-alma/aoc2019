@@ -14,7 +14,7 @@ test_bfs :: Spec
 test_bfs =
   describe "bfs" $
     it "finds the the first candidate that satisfies the matchFunction" $
-      bfs 1 (\x -> [x+1]) (==3) `shouldBe` Just 3
+      bfs 1 (\x -> [x+1]) (\x -> even ((x + 1) `div` 2)) `shouldBe` Just 3
 
 test_BfsWithPath :: Spec
 test_BfsWithPath =
