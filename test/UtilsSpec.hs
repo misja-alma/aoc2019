@@ -27,6 +27,6 @@ spec = do
    test_bfs
    test_BfsWithPath
   
--- TODO I don't think this is needed
+-- For running the test stand-alone
 main :: IO ()
 main = hspec spec
