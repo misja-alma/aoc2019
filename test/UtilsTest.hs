@@ -1,6 +1,5 @@
 module UtilsTest (test_toNumber, test_bfs, test_BfsWithPath) where
 
-import SpecHelper
 import Test.Hspec
 import Utils
 
