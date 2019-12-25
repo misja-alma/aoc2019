@@ -10,6 +10,14 @@ test_toNumber =
       toNumber [1,2,3] `shouldBe` 123
       toNumber [0] `shouldBe` 0
 
+test_aStarSearch :: Spec
+test_aStarSearch =
+  describe "aStarSearch" $ do
+    it "finds the the first candidate that satisfies the matchFunction" $
+      aStarSearch 1 (\x -> [x+1]) (\x -> even ((x + 1) `div` 2)) `shouldBe` Just 3
+    it "returns Nothing if no path found" $
+      aStarSearch 0 (\x -> if x < 10 then [x+1] else []) (==11) `shouldBe` Nothing
+      
 test_bfs :: Spec
 test_bfs =
   describe "bfs" $ do
@@ -30,6 +38,7 @@ test_BfsWithPath =
 spec :: Spec
 spec = do
    test_toNumber
+   test_aStarSearch
    test_bfs
    test_BfsWithPath
 

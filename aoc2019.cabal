@@ -43,6 +43,7 @@ Test-Suite all_tests
                     containers,
                     multimap,
                     dequeue,
+                    heaps,
                     regex-posix,
                     hspec
     hs-source-dirs: test src

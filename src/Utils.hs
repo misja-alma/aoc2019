@@ -1,8 +1,9 @@
-module Utils (within, toNumber, sliding, count, bfs, bfsWithPath) where
+module Utils (within, toNumber, sliding, count, bfs, bfsWithPath, aStarSearch) where
 
 import Data.Maybe
 import qualified Data.Sequence as D
 import qualified Data.Set as S
+import qualified Data.Heap as H -- (NOTE: from heaps, not from heap!).
 
 within :: (Int, Int) -> Int -> Bool
 within (a, b) c = let (smaller, greater) = if a > b then (b, a) else (a, b) in
@@ -27,7 +28,19 @@ count f = length . filter f
 dequeue :: D.Seq a -> (a, D.Seq a)
 dequeue sq = let (rest, el) = D.splitAt (D.length sq - 1) sq in (D.index el 0, rest)
 
--- TODO also make a aStarSearch, using Data.Heap (NOTE: from heaps, not from heap!). And maybe variations on both that use HashSets. And Benchmark?
+-- TODO And maybe try variations on both aStarSearch and bfs that use HashSets. And Benchmark?
+aStarSearch :: Ord a => a -> (a -> [a]) -> (a -> Bool) -> Maybe a
+aStarSearch root getChildren matchFunction =
+    let queue = H.singleton root
+        visited = S.singleton root
+        (_, _, result) = head $ dropWhile (\(q,_,r) -> not (H.null q) && isNothing r) $ iterate nextCandidate (queue, visited, Nothing) in
+    result
+    where nextCandidate (q, v, _) = let Just (candidate, poppedQ) = H.uncons q in
+                                    if matchFunction candidate then (poppedQ, v, Just candidate)
+                                    else let children = filter (`S.notMember` v) (getChildren candidate)
+                                             newVisited = S.union v (S.fromList children)
+                                             nextQueue = foldl (\newQ c -> H.insert c newQ) poppedQ children in
+                                         (nextQueue, newVisited, Nothing)
 
 bfs :: Ord a => a -> (a -> [a]) -> (a -> Bool) -> Maybe a
 bfs root getChildren matchFunction =
