@@ -1,4 +1,4 @@
-module UtilsTest (test_toNumber, test_bfs, test_BfsWithPath) where
+module UtilsSpec (spec) where
 
 import Test.Hspec
 import Utils
@@ -21,9 +21,12 @@ test_BfsWithPath =
     it "finds the shortest (reversed) path to a node satisfying the matchFunction" $
       bfsWithPath 1 (\x -> [x+1]) (==3) `shouldBe` Just [3,2,1]
 
+spec :: Spec
+spec = do
+   test_toNumber
+   test_bfs
+   test_BfsWithPath
+  
 -- TODO I don't think this is needed
 main :: IO ()
-main = hspec $ do
-         test_toNumber
-         test_bfs
-         test_BfsWithPath
+main = hspec spec
